@@ -10,7 +10,7 @@ export default function Payrex({ route }) {
   // Fetch clientSecret from backend (Supabase Edge Function / Node.js backend)
   const createPaymentIntent = async () => {
     const res = await fetch(
-      "https://YOUR-SUPABASE-PROJECT/functions/v1/create-payment-intent",
+      "https://dashless-backend-production.up.railway.app/create-payment-intent",
       {
         method: "POST",
         headers: {
@@ -38,35 +38,42 @@ export default function Payrex({ route }) {
 
   // Build HTML that loads PayRex Elements
   const html = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="https://js.payrexhq.com/v1/payrex.js"></script>
-        <style>
-          body { font-family: sans-serif; padding: 20px; }
-          #payment-element { margin-top: 20px; }
-        </style>
-      </head>
-      <body>
-        <h2>QRPH Payment</h2>
-        <p>Scan the QR code to pay ₱${amount / 100}</p>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://js.payrexhq.com"></script>
+    <style>
+      body { font-family: sans-serif; padding: 20px; }
+      #payment-element { width: 100%; height: 300px; margin-top: 20px; }
+    </style>
+  </head>
+  <body>
+    <h2>QRPH Payment</h2>
+    <p>Scan the QR code to pay ₱${amount / 100}</p>
 
-        <div id="payment-element"></div>
+    <div id="payment-element"></div>
 
-        <script>
-          const payrex = PayRex("YOUR_PUBLISHABLE_KEY");
-
-          const elements = payrex.elements({
-            clientSecret: "${clientSecret}"
-          });
-
-          const paymentElement = elements.create("payment");
-          paymentElement.mount("#payment-element");
-        </script>
-      </body>
-    </html>
-  `;
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        const payrex = Payrex("pk_test_HXJEZ48JYw8rnGAnnCDXwgBFfuj4bvmQ");
+        const elements = payrex.elements({ clientSecret: "${clientSecret}" });
+        const paymentElement = elements.create("payment", {
+          fields: {
+            billingDetails: {
+              email: "none",
+              name: "none",
+              phone: "none",
+              address: "none"
+            }
+          }
+        });
+        paymentElement.mount("#payment-element");
+      });
+    </script>
+  </body>
+</html>
+`;
 
   return (
     <WebView

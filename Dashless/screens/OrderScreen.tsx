@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
+  Alert
 } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -13,6 +14,7 @@ const { width } = Dimensions.get("window");
 type OrderScreenProps = {
   route: {
     params: {
+      id: string;
       name: string;
       address: string;
       amount: number;
@@ -22,8 +24,62 @@ type OrderScreenProps = {
   navigation: any;
 };
 
+interface DeliveryItem {
+  id: string;
+  rider_id: string;
+  created_at: string;
+  customer_name: string;
+  customer_address: string;
+  cod_amount: number;
+  status: "Pending" | "En Route" | "Arrived" | "Payment" | "Completed";
+  payment_type: string;
+}
+
+const statusArray = ["Pending","En Route", "Arrived", "Payment", "Completed"]
+
 export default function OrderScreen({ route, navigation }: OrderScreenProps) {
-  const { name, address, amount, status } = route.params;
+  const { id, name, address, amount, status, payment_type } = route.params;
+
+  const updateOrderStatus = async (orderId: string, newStatus: DeliveryItem["status"]) => {
+    try {
+      const response = await fetch(
+        `https://dashless-backend-production.up.railway.app/order-status/${orderId}`, // include id in URL
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: newStatus }),
+        }
+      );
+
+      const data = await response.json();
+      
+      console.log("Order updated:", data.order);
+      Alert.alert("Success", `Order status updated to ${newStatus}`);
+      
+      // Optional: refresh your deliveries list here
+      // getDeliveriesData();
+
+    } catch (error: any) {
+      console.error(error.message);
+      Alert.alert("Error", error.message);
+    }
+  };
+
+  const getNextStatus = (currentStatus: DeliveryItem["status"]): DeliveryItem["status"] => {
+    const index = statusArray.indexOf(currentStatus);
+    if (index === -1) throw new Error("Invalid status");
+    
+    // If it's the last status, return itself
+    if (currentStatus === "Completed" || index === statusArray.length - 1) {
+      return "Completed";
+    }
+
+    // Type assertion to tell TypeScript this is a valid status
+    return statusArray[index + 1] as DeliveryItem["status"];
+  };
+
 
   return (
     <View style={styles.container}>
@@ -42,15 +98,42 @@ export default function OrderScreen({ route, navigation }: OrderScreenProps) {
 
         <Text style={styles.label}>Status</Text>
         <Text style={styles.value}>{status}</Text>
+
+        <Text style={styles.label}>Payment Type</Text>
+        <Text style={styles.value}>{payment_type.toUpperCase()}</Text>
       </View>
 
       {/* Bottom Button */}
+      {
+        status !== "Payment" && status !== "Completed" ? (
+          <TouchableOpacity
+            style={styles.bottomButton}
+            onPress={async() => {
+              await updateOrderStatus(id, getNextStatus(status as DeliveryItem["status"]));
+              navigation.navigate('DeliveryScreen');
+            }}
+          >
+            <Text style={styles.buttonText}>Advance Status</Text>
+          </TouchableOpacity>
+        ) : status === "Payment" ? (
+          <TouchableOpacity
+            style={styles.bottomButton}
+            onPress={() => navigation.navigate('Payrex', { id:id, amount: amount * 100, name: name , payment_type: payment_type, status:status})}
+          >
+            <Text style={styles.buttonText}>Go to Payment Verification</Text>
+          </TouchableOpacity>
+        ) : (
+          <></>
+        )
+      }
+
       <TouchableOpacity
         style={styles.bottomButton}
         onPress={() => navigation.goBack()}
       >
-        <Text style={styles.buttonText}>Back to Deliveries</Text>
+        <Text style={styles.buttonText}>Go Back</Text>
       </TouchableOpacity>
+      
     </View>
   );
 }

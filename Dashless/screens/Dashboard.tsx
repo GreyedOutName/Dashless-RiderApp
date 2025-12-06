@@ -1,4 +1,6 @@
 import { StatusBar } from "expo-status-bar";
+import { useEffect , useState} from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   StyleSheet,
   Text,
@@ -10,11 +12,50 @@ import {
 } from "react-native";
 
 export default function Dashboard({ navigation }) {
-  const stats = [
-    { id: "1", title: "Deliveries Completed", body: "12 today" },
-    { id: "2", title: "Total Collected", body: "₱4,560" },
-    { id: "3", title: "Cash vs QRPH", body: "70% QRPH • 30% Cash" },
-  ];
+  const [stats,setstats] = useState([
+    { id: "1", title: "Deliveries Completed", body: "...Loading" },
+    { id: "2", title: "Total Collected", body: "...Loading" },
+    { id: "3", title: "Cash vs QRPH", body: "...Loading" },
+  ]);
+
+  const getStats=async()=>{
+    try {
+      const [completedRes, totalCodRes, paymentRes] = await Promise.all([
+        fetch("https://dashless-backend-production.up.railway.app/orders-today/completed-count"),
+        fetch("https://dashless-backend-production.up.railway.app/orders-today/total-cod"),
+        fetch("https://dashless-backend-production.up.railway.app/orders-today/payment-percentages"),
+      ]);
+
+      const completedData = await completedRes.json();
+      const totalCodData = await totalCodRes.json();
+      const paymentData = await paymentRes.json();
+
+      setstats([
+        {
+          id: "1",
+          title: "Deliveries Completed",
+          body: `${completedData.count} today`,
+        },
+        {
+          id: "2",
+          title: "Total Collected",
+          body: `₱${totalCodData.total}`,
+        },
+        {
+          id: "3",
+          title: "Cash vs QRPH",
+          body: `${paymentData.qrphPercent}% QRPH • ${paymentData.cashPercent}% Cash`,
+        },
+      ]);
+
+    } catch (err) {
+      console.error("Stats error:", err);
+    }
+  }
+
+  useEffect(()=>{
+    getStats()
+  },[])
 
   return (
     <View style={styles.container}>
@@ -24,7 +65,7 @@ export default function Dashboard({ navigation }) {
           style={styles.logoImage}
           source={require("../assets/DashlessLogo.png")}
         />
-
+        <Text style={styles.logoTitle}>DASHLESS</Text>
         <FlatList
           data={stats}
           keyExtractor={(item) => item.id}
@@ -74,6 +115,16 @@ const styles = StyleSheet.create({
     height: 120,
     marginBottom: 25,
     resizeMode: "contain",
+  },
+
+  logoTitle: {
+    color: "#8F6BFF",
+    fontWeight: "bold",
+    fontSize: 32,
+    textTransform: "uppercase",
+    marginBottom: 20, // adjust spacing below
+    position: "relative",
+    top: -60, // move it upwards, overlapping the logo
   },
 
   statCard: {

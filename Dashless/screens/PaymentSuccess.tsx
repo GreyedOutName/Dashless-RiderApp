@@ -8,23 +8,21 @@ import {
 } from "react-native";
 import React from "react";
 
-export default function Splash({ navigation }) {
+export default function PaymentSuccess({ navigation }) {
   return (
     <View style={styles.container}>
       <Image
         style={styles.logoImage}
         source={require("../assets/DashlessLogo.png")}
       />
-      <Text style={styles.logoTitle}>DASHLESS</Text>
 
-      <Text style={styles.title}>Start Another Productive Day!
-      </Text>
+      <Text style={styles.title}>Payment Success!</Text>
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate("Dashboard")} // <-- FIXED NAME
+        onPress={() => navigation.navigate("DeliveryScreen")} // <-- FIXED NAME
       >
-        <Text style={styles.buttonText}>Go to Dashboard</Text>
+        <Text style={styles.buttonText}>Go to your Deliveries Screen</Text>
       </TouchableOpacity>
 
       <StatusBar style="auto" />
@@ -68,16 +66,6 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 18,
     fontWeight: "600",
-  },
-
-  logoTitle: {
-    color: "#8F6BFF",
-    fontWeight: "bold",
-    fontSize: 32,
-    textTransform: "uppercase",
-    marginBottom: 20, // adjust spacing below
-    position: "relative",
-    top: -80, // move it upwards, overlapping the logo
   },
 });
 

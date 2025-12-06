@@ -7,8 +7,18 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "plugin":[
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/DashlessLogo.png",
+          "color": "#ffffff",
+          "defaultChannel": "default",
+        }
+      ]
+    ],
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/DashlessLogo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,7 +27,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/DashlessLogo.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
